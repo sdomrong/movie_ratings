@@ -17,6 +17,7 @@ class MovieRatings:
         self.user_id = []
         self.movie_id = []
         self.ratings = []
+        self.movie_genre = []
         self.movie_dict = {}
 
     def read_users(self, filename):    
@@ -40,11 +41,16 @@ class MovieRatings:
             reader = csv.reader(f, delimiter = '\t')
             
             n = 0
+            self.movie_genre.append(0)
             for row in reader:
+                score = []
                 if (n < header):
                     n = n + 1
                 else:
                     self.movie_dict[int(row[0])] = row[1]
+                    for i in xrange(2, len(row)):
+                        score.append(row[i])
+                    self.movie_genre.append(score)
         return 0
     
     # 1st most popular movie = popular[0][0]
@@ -79,8 +85,7 @@ class MovieRatings:
         
         movie_high.pop(zero_index)
         sorted_best = sorted(movie_high, key = lambda x: x[ave], reverse = True)
-        print sorted_best
-        
+
         best = []
         for i in xrange(0, 10):
             best.append([sorted_best[i][ID], sorted_best[i][ave]])
