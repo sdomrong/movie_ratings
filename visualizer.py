@@ -52,6 +52,13 @@ class MovieRatings:
                         score.append(row[i])
                     self.movie_genre.append(score)
         return 0
+        
+    def all_ratings(self):
+        rating_list = [0.0 for in in xrange(6)]
+                       
+        for score in self.ratings:
+            rating_list[score] = rating_list[score] + 1
+        return rating_list
     
     # 1st most popular movie = popular[0][0]
     # 1st most popular movie count = popular[0][1]
@@ -90,6 +97,20 @@ class MovieRatings:
         for i in xrange(0, 10):
             best.append([sorted_best[i][ID], sorted_best[i][ave]])
         return best
+    
+    # All movie ratings of a particular genre (0-5)
+    def rating_genres(self, genre):
+        movie_list = []
+        for i in xrange(1, len(self.movie_genre)):
+            if (self.movie_genre[genre] is True):
+                movie_list.append(i)
+                
+        rating_list = [0.0 for in in xrange(6)]
+        
+        for i in xrange(0, len(self.movie_id)):
+            if (self.movie_id[i] in movie_list):
+                rating_list[self.ratings[i]] = rating_list[self.ratings[i]] + 1
+        return rating_list
     
 if __name__ == '__main__':
     Rating = MovieRatings()
