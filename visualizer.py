@@ -10,6 +10,7 @@ import numpy as np
 import csv
 import matplotlib.pyplot as plt
 from collections import Counter
+import seaborn as sns
 
 class MovieRatings:
     
@@ -49,12 +50,12 @@ class MovieRatings:
                 else:
                     self.movie_dict[int(row[0])] = row[1]
                     for i in xrange(2, len(row)):
-                        score.append(row[i])
+                        score.append(int(row[i]))
                     self.movie_genre.append(score)
         return 0
         
     def all_ratings(self):
-        rating_list = [0.0 for in in xrange(6)]
+        rating_list = [0.0 for i in xrange(6)]
                        
         for score in self.ratings:
             rating_list[score] = rating_list[score] + 1
@@ -76,10 +77,16 @@ class MovieRatings:
         rating = 1
         ave = 2
         ID = 3
+
+        movie_ratings = np.column_stack((self.movie_id, self.ratings))
         
-        for movie in self.movie_id:
-            movie_high[movie][count] = movie_high[movie][count] + 1
-            movie_high[movie][rating] = movie_high[movie][rating] + self.ratings[movie]
+        for movie in self.movie_dict.keys():
+            mov_filter = np.array(movie_ratings)[:, 0] == movie
+            ratings = movie_ratings[mov_filter, 1].tolist()
+            num_ratings = len(ratings)
+            sum_ratings = sum(ratings)
+            movie_high[movie][count] = num_ratings
+            movie_high[movie][rating] = sum_ratings
         
         zero_index = 0
         for i in xrange(0, len(movie_high)):
@@ -88,7 +95,7 @@ class MovieRatings:
             elif movie_high[i][count] == 0:
                 movie_high[i][ave] = 0
             else:
-                movie_high[i][ave] = movie_high[i][rating] / movie_high[i][count]
+                movie_high[i][ave] = float(movie_high[i][rating]) / float(movie_high[i][count])
         
         movie_high.pop(zero_index)
         sorted_best = sorted(movie_high, key = lambda x: x[ave], reverse = True)
@@ -100,18 +107,31 @@ class MovieRatings:
     
     # All movie ratings of a particular genre (0-5)
     def rating_genres(self, genre):
+        #print self.movie_genre
         movie_list = []
         for i in xrange(1, len(self.movie_genre)):
-            if (self.movie_genre[genre] is True):
+            if (self.movie_genre[i][genre] == True):
                 movie_list.append(i)
                 
-        rating_list = [0.0 for in in xrange(6)]
-        
+        #rating_list = [0.0 for i in xrange(6)]
+        rating_list = []
+
         for i in xrange(0, len(self.movie_id)):
             if (self.movie_id[i] in movie_list):
-                rating_list[self.ratings[i]] = rating_list[self.ratings[i]] + 1
+                #rating_list[self.ratings[i]] = rating_list[self.ratings[i]] + 1
+                rating_list.append(self.ratings[i])
         return rating_list
     
+def do_histogram(x, title, xaxis):
+    with sns.color_palette("cubehelix", 5):
+        a = sns.distplot(x, kde = False, bins = 5, color = sns.xkcd_rgb["lilac"])
+        sns.plt.xlim((0, 6))
+        sns.plt.xticks(xrange(0, 7))
+        sns.plt.title(title)
+        sns.plt.xlabel(xaxis)
+        sns.plt.ylabel("Frequency")
+        sns.plt.show()
+
 if __name__ == '__main__':
     Rating = MovieRatings()
     
@@ -121,17 +141,42 @@ if __name__ == '__main__':
     Rating.read_users(user_file)
     Rating.read_movies(movie_file)
     
+    #do_histogram(Rating.ratings, "Histogram of All Ratings", "Rating")
+
+
     popular = Rating.popular_movies()
+    popular_ratings = []
+    movie_ratings = np.column_stack((Rating.movie_id, Rating.ratings))
+    print np.array(Rating.movie_id)[:] == popular[0]
     
+    # Get ratings for the top 10 popular movies
     for movie in popular:
+        mov_filter = np.array(Rating.movie_id)[:] == movie[0]
+        popular_ratings += movie_ratings[mov_filter, 1].tolist()
+
         print Rating.movie_dict[movie[0]]
         print "Count: " + str(movie[1])
+    #do_histogram(popular_ratings, "Ratings of Top 10 Movies", "Rating")   
     
     best = Rating.highest_ratings()
+    best_ratings = []
+
     for movie in best:
+        mov_filter = np.array(Rating.movie_id)[:] == movie[0]
+        print 'avg for movie', Rating.movie_dict[movie[0]], np.mean(movie_ratings[mov_filter, 1].tolist())
+        best_ratings += movie_ratings[mov_filter, 1].tolist()
+        print movie_ratings[mov_filter, 1].tolist()
         print Rating.movie_dict[movie[0]]
         print "Rating: " + str(movie[1])
-    
+    #do_histogram(best_ratings, "Ratings of Highest Avg Rated Movies", "Rating")  
+
+    genre_0_ratings = Rating.rating_genres(0)
+    genre_1_ratings = Rating.rating_genres(1)
+    genre_2_ratings = Rating.rating_genres(7)
+
+    do_histogram(genre_0_ratings, "Ratings for Movies of Genre 0", "Rating")
+    do_histogram(genre_1_ratings, "Ratings for Movies of Genre 1", "Rating")
+    do_histogram(genre_2_ratings, "Ratings for Movies of Genre 7", "Rating")
     """
     for ID in Rating.user_id:
         print Rating.movie_dict[ID]
