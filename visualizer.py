@@ -121,6 +121,12 @@ class MovieRatings:
                 #rating_list[self.ratings[i]] = rating_list[self.ratings[i]] + 1
                 rating_list.append(self.ratings[i])
         return rating_list
+        
+def SVD(V):
+    V_ = np.dot(V)
+    A,E,B = np.linalg.svd(V_)
+    return np.dot(A[:,0:2].T, V_)
+    
     
 def do_histogram(x, title, xaxis):
     with sns.color_palette("cubehelix", 5):
